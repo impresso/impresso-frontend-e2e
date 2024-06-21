@@ -36,7 +36,7 @@ interface ImpressoLocalStorage {
   __impresso__settings?: string
 }
 
-Cypress.Commands.add('acceptTermsAndCookies', () => {
+const acceptTermsAndCookies = () => {
   cy.getAllLocalStorage().then((result: ImpressoLocalStorage) => {
     const impressoSettings = maybeParse(result.__impresso__settings) ?? {}
     impressoSettings['termsAgreed'] = true
@@ -46,9 +46,11 @@ Cypress.Commands.add('acceptTermsAndCookies', () => {
 
     window.localStorage.setItem('__impresso__settings', JSON.stringify(impressoSettings))
   })
-})
+}
 
-Cypress.Commands.add('login', (
+Cypress.Commands.add('acceptTermsAndCookies', acceptTermsAndCookies)
+
+const login = (
   redirect?: string,
   doNotWait?: boolean,
   email?: string,
@@ -72,11 +74,41 @@ Cypress.Commands.add('login', (
 
   // wait for it to log in and verify the name is in the header
   cy.get('.TheHeader__userArea .user-fullname').should('exist')
-})
+}
 
+Cypress.Commands.add('login', login)
 
-Cypress.Commands.add('logout', () => {
+const logout = () => {
   cy.visit('/user/logout')
 
   cy.get('.TheHeader__userArea .nav-link .small-caps').first().should('have.text', 'login')
+}
+
+Cypress.Commands.add('logout', logout)
+
+
+Cypress.Commands.add('ensureLoggedIn', () => {
+  cy.session('testUser', () => {
+    // 1. accept terms and cookies
+    acceptTermsAndCookies()
+    // 2. log in
+    login()
+  }, {
+    cacheAcrossSpecs: true,
+  })
+})
+
+Cypress.Commands.add('ensureLoggedOut', () => {
+  cy.session('anonymous', () => {
+    // 1. accept terms and cookies
+    acceptTermsAndCookies()
+    // 2. remove auth cookie
+    cy.clearAllCookies()
+  }, {
+    cacheAcrossSpecs: true,
+  })
+})
+
+Cypress.Commands.add('ensureNoErrors', () => {
+  cy.get('#app-header .alert').should('not.exist')
 })
