@@ -1,0 +1,31 @@
+name: Run cypress tests in the dev environment
+
+on: 
+  push:
+  schedule:
+    - cron: "7 */3 * * *" # every 3rd hour
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-22.04
+    container:
+      # Cypress Docker image from https://hub.docker.com/r/cypress/included
+      # with Cypress globally pre-installed
+      image: cypress/included:latest
+      options: --user 1001
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: 'Create .env file'
+        run: |
+          touch .env
+          echo USER_EMAIL=${{ secrets.DEV_TEST_USER_EMAIL }} >> .env
+          echo USER_PASSWORD=${{ secrets.DEV_TEST_USER_PASSWORD }} >> .env
+      # Install npm dependencies, cache them correctly
+      # and run all Cypress tests
+      - name: Cypress run
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+        env:
+          CYPRESS_INSTALL_BINARY: 0
