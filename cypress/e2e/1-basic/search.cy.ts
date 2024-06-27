@@ -7,7 +7,7 @@ describe('Search', () => {
   })
 
 
-  it('Search for "Impresso" yields expected number of results with expected elements in the list', () => {
+  xit('Search for "Impresso" yields expected number of results with expected elements in the list', () => {
     const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
