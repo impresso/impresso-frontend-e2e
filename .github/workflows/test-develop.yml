@@ -32,13 +32,12 @@ jobs:
       - name: notify slack
         id: slack
         uses: slackapi/slack-github-action@v1.26.0
-        # disabled for testing
-        # if: ${{ failure() }}
+        if: ${{ failure() }}
         with:
           channel-id: 'ci-notifications'
           payload: |
             {
-              "text": "TEST: 🚨 End-to-end tests failed in the devevelopment environment. See ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} for more details."
+              "text": "🚨 End-to-end tests failed in the **devevelopment** environment. See ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} for more details."
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
