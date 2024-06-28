@@ -19,11 +19,6 @@ describe('Search', () => {
     cy.get('section.search-results-summary').should('exist')
     cy.get('section.search-results-summary').contains(/56 articles found containing impresso/)
 
-    // TODO: move interaction to another test
-    // // test order by
-    // cy.get('[data-testid="order-by-dropdown"] > .btn').click()
-    // cy.get('[data-testid="order-by-dropdown"] > .dropdown-menu a').contains('publication date, most recent first').click()
-
     // wait for the loading indicator to disappear
     cy.get('#app-loading').should('not.exist')
 
@@ -84,6 +79,151 @@ describe('Search', () => {
       .each(($li) => people.push($li.text()))
     cy.wrap(people)
       .should('deep.equal', ['Leonardo DiCaprio', 'Robbie Williams'])
+  })
+
+ xit('Result list display controls work as expected', () => {
+    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist')  
+
+    // select the first search result
+    cy.get('[data-testid="search-results-list-items"] > div').as('searchResults')
+    cy.get('@searchResults')
+      .first()
+      .find('[data-testid="search-results-list-item"]')
+      .as('firstSearchResultListItem')
+
+    // check the title of the first search result
+    cy.get('@firstSearchResultListItem').find('[data-testid="article-title"]').contains('3+')
+
+
+    // test order by: oldest first
+    cy.get('[data-testid="order-by-dropdown"] > .btn').click()
+    cy.get('[data-testid="order-by-dropdown"] > .dropdown-menu a').contains('publication date, oldest first').click()
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist')  
+
+    // check the title of the first search result
+    cy.get('@firstSearchResultListItem').find('[data-testid="article-title"]').contains('Chambre » avec la pension,')
+
+
+    // test order by: relevance
+    cy.get('[data-testid="order-by-dropdown"] > .btn').click()
+    cy.get('[data-testid="order-by-dropdown"] > .dropdown-menu a').contains('relevance').click()
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist')  
+
+    // check the title of the first search result
+    cy.get('@firstSearchResultListItem').find('[data-testid="article-title"]').contains('UNKNOWN')
+    
+
+    // pagination
+
+    // 1st page is active
+    cy.get('.float-left > [data-testid="pagination-container"] > [data-testid="page-1"]')
+      .should('have.class', 'active')
+
+    cy.get('.float-left > [data-testid="pagination-container"] > [data-testid="page-3"] > .page-link')
+      .click()
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist')  
+
+
+    // check the title of the first search result
+    cy.get('@firstSearchResultListItem').find('[data-testid="article-title"]').contains('La crescente marea della mano d\'opera estera')
+
+    // 3rd page is active
+    cy.get('.float-left > [data-testid="pagination-container"] > [data-testid="page-3"]')
+    .should('have.class', 'active')
+  })
+
+  it('Autocomplete works with search pills', () => {
+    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist')  
+
+    cy.get('[data-testid="search-pills"]').as('searchPills')
+
+    // only 1 search pill (impresso) should be present
+    cy.get('@searchPills').find('.search-pill').should('have.length', 1)
+
+    // check the search pill content
+    cy.get('@searchPills')
+      .find('[data-testid="search-pill-string"]')
+      .contains('impresso')
+      .should('exist')
+
+    // Add Paris
+    cy.get('[data-testid="autocomplete-input"]').type('Paris')
+    cy.get('.suggestions .location').contains('Paris').click()
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist')
+
+    // 2 search pills should be present
+    cy.get('@searchPills').find('.search-pill').should('have.length', 2)
+
+    // check the search pill content - impresso
+    cy.get('@searchPills')
+      .find('[data-testid="search-pill-string"]')
+      .contains('impresso')
+      .should('exist')
+
+    // check the search pill content - paris
+    cy.get('@searchPills')
+      .find('[data-testid="search-pill-location"]')
+      .contains('Paris')
+      .as('parisPill')
+    
+    cy.get('@parisPill').should('exist')
+
+    // Human readable search summary
+    cy.get('section.search-results-summary').should('exist')
+    cy.get('section.search-results-summary').contains(/4 articles found containing impresso mentioning Paris/)
+
+    // remove Paris
+    cy.get('@parisPill').click()    
+    cy.get('@parisPill')
+      .parent('[data-testid="search-pill-location"]')
+      .find('button')
+      .contains('remove')
+      .click()
+    
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist')
+
+    // only 1 search pill (impresso) should be present
+    cy.get('@searchPills').find('.search-pill').should('have.length', 1)
+
+    // remove everything
+    cy.get('[data-testid="reset-filters-button"]').first().click()
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading', {
+      timeout: 10000 // long timeout because we are loading lots of data
+    }).should('not.exist')
+
+    // 0 search pills should be present
+    cy.get('@searchPills').find('.search-pill').should('have.length', 0)
+
+    // lots of articles found
+    cy.get('section.search-results-summary')
+      .invoke('text')
+      .then((text) => {
+        const textParts = text.split(' ')
+        const numberPart = textParts[0].replace(/,/g, '')
+        const parsedNumber = parseInt(numberPart, 10)
+
+        // check that we have at least 40,000,000 articles
+        cy.wrap(parsedNumber).should('be.greaterThan', 40000000)
+      })
+
   })
 
 })
