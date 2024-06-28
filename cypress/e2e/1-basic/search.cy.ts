@@ -332,4 +332,48 @@ describe('Search', () => {
 
   })
 
+  xit('Language filter works', () => {
+    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist') 
+
+
+    // filter by language
+    cy.get('[data-testid="facet-filter-language"] [data-testid="expand-collapse-button"]').click()
+
+    cy.get('[data-testid="facet-filter-language"] .FilterFacetBucket .ItemLabel')
+      .contains('French')
+      .siblings('span')
+      .contains('10 results')
+      .should('exist')
+
+    cy.get('[data-testid="facet-filter-language"] .FilterFacetBucket .ItemLabel')
+      .contains('French')
+      .parent()
+      .siblings('.custom-checkbox')
+      .click()
+
+    cy.get('[data-testid="facet-filter-language"] button')
+      .contains('Apply')
+      .click()
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist')
+
+    cy.get('section.search-results-summary').contains(/10 articles found containing impresso written in French/)
+
+    cy.get('[data-testid="search-pill-language"] .label').should('have.text', 'French')
+
+    cy.get('[data-testid="facet-filter-language"] [data-testid="remove-filter-button"]')
+      .click()
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist')
+
+    cy.get('[data-testid="search-pill-language"]').should('not.exist')
+    cy.get('section.search-results-summary').contains(/56 articles found containing impresso/)
+  })
+
 })
