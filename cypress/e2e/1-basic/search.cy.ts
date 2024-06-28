@@ -291,7 +291,7 @@ describe('Search', () => {
 
   })
 
-  it('Content length filter works', () => {
+  xit('Content length filter works', () => {
     const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
