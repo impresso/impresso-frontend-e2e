@@ -291,12 +291,44 @@ describe('Search', () => {
 
   })
 
-  xit('Content length filter works', () => {
+  it('Content length filter works', () => {
     const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
     // wait for the loading indicator to disappear
     cy.get('#app-loading').should('not.exist')  
+
+    // make sure the histogram is visible (it renders the peak)
+    cy.get('[data-testid="filter-range"] svg .bars .bar').should('have.length.greaterThan', 1)
+    cy.get('[data-testid="filter-range"] svg .maxval text').should('have.text', '200 (11 results)')
+
+
+    // adjust the range
+    cy.get('[data-testid="filter-range"] .vue-slider-dot-handle').first().as('leftHandle')
+    cy.get('[data-testid="filter-range"] .vue-slider-dot-handle').last().as('rightHandle')
+
+    cy.get('@leftHandle').trigger('mousedown', { which: 1 })
+    cy.get('@leftHandle').trigger('mousemove', { pageX: 80, pageY: 0, force: true })
+    cy.get('@leftHandle').trigger('mouseup', { which: 1 })
+
+    cy.get('@rightHandle').trigger('mousedown', { which: 1 })
+    cy.get('@rightHandle').trigger('mousemove', { pageX: 180, pageY: 0, force: true })
+    cy.get('@rightHandle').trigger('mouseup', { which: 1 })
+
+    cy.get('[data-testid="filter-range"] button').contains('Apply').click()
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist')  
+
+    cy.get('section.search-results-summary').contains(/14 articles found containing impresso/)
+
+    cy.get('[data-testid="search-pill-contentLength"] .label').should('have.text', 'Content length between 1,435 and 4,364')
+
+    // reset 
+    cy.get('[data-testid="filter-range"] button').contains('Reset').click()
+
+    cy.get('[data-testid="search-pill-contentLength"]').should('not.exist')
+    cy.get('section.search-results-summary').contains(/56 articles found containing impresso/)
 
   })
 
