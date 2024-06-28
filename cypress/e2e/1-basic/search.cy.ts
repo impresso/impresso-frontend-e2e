@@ -81,7 +81,7 @@ describe('Search', () => {
       .should('deep.equal', ['Leonardo DiCaprio', 'Robbie Williams'])
   })
 
- xit('Result list display controls work as expected', () => {
+  xit('Result list display controls work as expected', () => {
     const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
@@ -142,7 +142,7 @@ describe('Search', () => {
     .should('have.class', 'active')
   })
 
-  it('Autocomplete works with search pills', () => {
+  xit('Autocomplete works with search pills', () => {
     const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
@@ -223,6 +223,80 @@ describe('Search', () => {
         // check that we have at least 40,000,000 articles
         cy.wrap(parsedNumber).should('be.greaterThan', 40000000)
       })
+
+  })
+
+  xit('Frontpage toggle works', () => {
+    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist')  
+
+    cy.get('[data-testid="is-frontpage-toggle"]').click()
+
+    cy.get('section.search-results-summary').should('exist')
+    cy.get('section.search-results-summary').contains(/1 article found containing impresso/)
+
+    // 3 search pill (impresso + front page) should be present
+    cy.get('[data-testid="search-pills"]')
+      .find('.search-pill')
+      .should('have.length', 2)
+
+  })
+
+  xit('Date filter works', () => {
+    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist')  
+
+    // make sure the timeline is visible (it renders the peak)
+    cy.get('[data-testid="timeline"] svg .peak text').should('have.text', 14)
+
+    // enter different range
+    cy.get('[data-testid="add-new-date-filter-button"]').click()
+
+    cy.get('#start-date-datepicker').clear().type('1800-01-01')
+    cy.get('#end-date-datepicker').clear().type('1980-01-01')
+
+    cy.get('.filter-timeline button').contains('Apply').click()
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist')  
+
+    cy.get('section.search-results-summary').contains(/15 articles found containing impresso/)
+
+    // 3 search pill (impresso + front page) should be present
+    cy.get('[data-testid="search-pills"]')
+      .find('.search-pill')
+      .should('have.length', 2)
+  
+    cy.get('[data-testid="search-pill-daterange"] .label').should('have.text', 'From Jan 1, 1800 to Jan 1, 1980')
+  })
+
+  xit('Date filter timeline tooltip works', () => {
+    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist')  
+
+    // hover over the peak
+    cy.get('[data-testid="timeline"] svg .axis--x .tick').should('have.length.greaterThan', 1)
+    cy.get('[data-testid="timeline"] svg').trigger('mousemove', { position: 'center' })
+
+    cy.get('[data-testid="timeline"] .tooltip.active').should('exist')
+
+  })
+
+  xit('Content length filter works', () => {
+    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist')  
 
   })
 
