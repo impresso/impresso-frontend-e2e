@@ -7,7 +7,7 @@ describe('Search', () => {
   })
 
 
-  xit('Search for "Impresso" yields expected number of results with expected elements in the list', () => {
+  it('Search for "Impresso" yields expected number of results with expected elements in the list', () => {
     const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
@@ -81,7 +81,7 @@ describe('Search', () => {
       .should('deep.equal', ['Leonardo DiCaprio', 'Robbie Williams'])
   })
 
-  xit('Result list display controls work as expected', () => {
+  it('Result list display controls work as expected', () => {
     const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
@@ -142,7 +142,7 @@ describe('Search', () => {
     .should('have.class', 'active')
   })
 
-  xit('Autocomplete works with search pills', () => {
+  it('Autocomplete works with search pills', () => {
     const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
@@ -226,7 +226,7 @@ describe('Search', () => {
 
   })
 
-  xit('Frontpage toggle works', () => {
+  it('Frontpage toggle works', () => {
     const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
@@ -245,7 +245,7 @@ describe('Search', () => {
 
   })
 
-  xit('Date filter works', () => {
+  it('Date filter works', () => {
     const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
@@ -276,7 +276,7 @@ describe('Search', () => {
     cy.get('[data-testid="search-pill-daterange"] .label').should('have.text', 'From Jan 1, 1800 to Jan 1, 1980')
   })
 
-  xit('Date filter timeline tooltip works', () => {
+  it('Date filter timeline tooltip works', () => {
     const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
@@ -291,7 +291,7 @@ describe('Search', () => {
 
   })
 
-  xit('Content length filter works', () => {
+  it('Content length filter works', () => {
     const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
@@ -332,7 +332,7 @@ describe('Search', () => {
 
   })
 
-  xit('Language filter works', () => {
+  it('Language filter works', () => {
     const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
