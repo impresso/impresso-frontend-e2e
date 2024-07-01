@@ -29,6 +29,13 @@ jobs:
           browser: chrome
         env:
           CYPRESS_INSTALL_BINARY: 0
+      - name: Upload failure screenshot
+        id: upload-failure-screenshot
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: failure-screenshot
+          path: cypress/screenshots/
       - name: notify slack
         id: slack
         uses: slackapi/slack-github-action@v1.26.0

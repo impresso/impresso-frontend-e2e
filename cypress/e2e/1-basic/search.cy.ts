@@ -7,6 +7,13 @@ describe('Search', () => {
   })
 
 
+  it('should fail to test', () => {
+    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
+
+    cy.get('nothing').should('exist')
+  })
+
   it('Search for "Impresso" yields expected number of results with expected elements in the list', () => {
     const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
