@@ -375,4 +375,15 @@ describe('Search', () => {
     cy.get('section.search-results-summary').contains(/56 articles found containing impresso/)
   })
 
+  it.only("Entity monitor works", () => {
+    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist') 
+
+    cy.get(".ItemSelector").contains("Leonardo DiCaprio").click()
+
+    cy.get(".SelectionMonitor .d3-timeline .peak text").should("have.text", "910")
+  })
 })
