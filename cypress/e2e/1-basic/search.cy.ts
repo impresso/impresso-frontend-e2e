@@ -375,7 +375,7 @@ describe('Search', () => {
     cy.get('section.search-results-summary').contains(/56 articles found containing impresso/)
   })
 
-  it.only("Entity monitor works", () => {
+  it("Entity monitor works", () => {
     const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
@@ -385,5 +385,30 @@ describe('Search', () => {
     cy.get(".ItemSelector").contains("Leonardo DiCaprio").click()
 
     cy.get(".SelectionMonitor .d3-timeline .peak text").should("have.text", "910")
+  })
+
+  it("Can add similar words", () => {
+    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist') 
+
+    cy.get('[data-testid="add-similar-words-button"]').click()
+
+    cy.get('.modal input[name="inputEmbeddings"]').type("banana")
+    cy.get('.modal .embeddings a').contains("duck").click()
+
+    // wait for the loading indicator to disappear
+    cy.get('#app-loading').should('not.exist') 
+
+    // there is a new pill
+    cy.get('[data-testid="search-pill-string"] .label').contains("duck").should('exist')
+
+    // modal is closed when clicked close
+    cy.get(".modal .embeddings").should("exist")
+    cy.get('.modal [aria-label="Close"]').click()
+    cy.get(".modal .embeddings").should("not.exist")
+
+    cy.get('section.search-results-summary').contains(/Sorry, no articles found containing impresso AND duck/)
   })
 })
