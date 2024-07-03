@@ -11,7 +11,7 @@ jobs:
     container:
       # Cypress Docker image from https://hub.docker.com/r/cypress/included
       # with Cypress globally pre-installed
-      image: cypress/included:latest
+      image: cypress/included:13.12.0
       options: --user 1001
     steps:
       - name: Checkout
