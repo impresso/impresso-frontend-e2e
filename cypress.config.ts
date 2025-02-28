@@ -12,6 +12,8 @@ export default defineConfig({
     // setupNodeEvents(on, config) {
     //   // implement node event listeners here
     // },
+    // allow it to react to 4xx errors
+    chromeWebSecurity: false,
   },
   env: {
     // NOTE: add these as environment variables in .env:
