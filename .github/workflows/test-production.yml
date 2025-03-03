@@ -3,15 +3,15 @@ name: Run cypress tests in the dev environment
 on: 
   push:
   schedule:
-    - cron: "7 */3 * * *" # every 3rd hour
+    - cron: "14 */3 * * *" # every 3rd hour
 
 jobs:
   cypress-run:
     uses: ./.github/workflows/shared-cypress-run.yml
     with:
       environment: development
-      base_url: https://dev.impresso-project.ch/app
+      base_url: https://impresso-project.ch/app
     secrets:
-      user_email: ${{ secrets.DEV_TEST_USER_EMAIL }}
-      user_password: ${{ secrets.DEV_TEST_USER_PASSWORD }}
+      user_email: ${{ secrets.PROD_TEST_USER_EMAIL }}
+      user_password: ${{ secrets.PROD_TEST_USER_PASSWORD }}
       slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
