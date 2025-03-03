@@ -2,8 +2,9 @@ describe('Search', () => {
   let isDataVersion2 = false
   let isNewImageProxy = false
   beforeEach(() => {
-    isDataVersion2 = Cypress.env('BASE_URL').includes('dev.impresso-project.ch')
-    isNewImageProxy = Cypress.env('BASE_URL').includes('dev.impresso-project.ch')
+    const isDev = Cypress.env('BASE_URL') == null || Cypress.env('BASE_URL').includes('dev.impresso-project.ch')
+    isDataVersion2 = isDev
+    isNewImageProxy = isDev
     cy.ensureLoggedIn()
   })
   afterEach(() => {
