@@ -330,13 +330,13 @@ describe('Search', () => {
     cy.get('[data-testid="filter-range"] .vue-slider-dot-handle').first().as('leftHandle')
     cy.get('[data-testid="filter-range"] .vue-slider-dot-handle').last().as('rightHandle')
 
-    cy.get('@leftHandle').trigger('mousedown', { which: 1 })
+    cy.get('@leftHandle').trigger('mousedown', { which: 1, force: true })
     cy.get('@leftHandle').trigger('mousemove', { pageX: 80, pageY: 0, force: true })
-    cy.get('@leftHandle').trigger('mouseup', { which: 1 })
+    cy.get('@leftHandle').trigger('mouseup', { which: 1, force: true })
 
-    cy.get('@rightHandle').trigger('mousedown', { which: 1 })
+    cy.get('@rightHandle').trigger('mousedown', { which: 1, force: true })
     cy.get('@rightHandle').trigger('mousemove', { pageX: 180, pageY: 0, force: true })
-    cy.get('@rightHandle').trigger('mouseup', { which: 1 })
+    cy.get('@rightHandle').trigger('mouseup', { which: 1, force: true })
 
     cy.get('[data-testid="filter-range"] button').contains('Apply').click()
 
