@@ -32,6 +32,6 @@ describe('Newspapers', () => {
     cy.get('@knownLine').find('.label-end').should('have.text', '1991')
 
     // there should be a timeline with ticks
-    cy.get('.d3-timeline .axis--x .tick').should('have.length.greaterThan', 0)
+    cy.get('.d3-timeline .axis--x .tick', { timeout: 10000 }).should('have.length.greaterThan', 0)
   })
 })

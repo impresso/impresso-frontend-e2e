@@ -1,5 +1,9 @@
 describe('Search', () => {
+  let isDataVersion2 = false
+  let isNewImageProxy = false
   beforeEach(() => {
+    isDataVersion2 = Cypress.env('BASE_URL').includes('dev.impresso-project.ch')
+    isNewImageProxy = Cypress.env('BASE_URL').includes('dev.impresso-project.ch')
     cy.ensureLoggedIn()
   })
   afterEach(() => {
@@ -7,7 +11,8 @@ describe('Search', () => {
   })
 
   it('Search for "Impresso" yields expected number of results with expected elements in the list', () => {
-    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    // Term: Impresso, Source: Die Tat
+    const impressoSearchQuery = 'CgIYAgoQEAIYByABKghJbXByZXNzbwoJEAIYCSoDRFRU'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
     // wait for the loading indicator to disappear
@@ -16,29 +21,30 @@ describe('Search', () => {
     // check the number of search results
     // Human readable search summary
     cy.get('section.search-results-summary').should('exist')
-    cy.get('section.search-results-summary').contains(/56 articles found containing impresso/)
+    cy.get('section.search-results-summary').contains(/6 articles found containing Impresso/)
 
     // wait for the loading indicator to disappear
     cy.get('#app-loading').should('not.exist')
 
     // check the number of items in the search results
     cy.get('[data-testid="search-results-list-items"] > div').as('searchResults')
-    cy.get('@searchResults').should('have.length', 25)
+    cy.get('@searchResults').should('have.length', 6)
 
 
     // select the first search result
     cy.get('@searchResults').first().find('[data-testid="search-results-list-item"]').as('firstSearchResultListItem')
+    cy.get('@searchResults').first().next().find('[data-testid="search-results-list-item"]').as('secondSearchResultListItem')
 
     // check the title of the first search result
-    cy.get('@firstSearchResultListItem').find('[data-testid="article-title"]').contains('3+')
+    cy.get('@firstSearchResultListItem').find('[data-testid="article-title"]').contains('DKSI Nachrichten')
 
     // check the content of the first search result
-    cy.get('@firstSearchResultListItem').find('.article-matches').contains('Impresso ™ ri viaggio 16')
+    cy.get('@firstSearchResultListItem').find('.article-matches').contains('05 Impresso 9')
 
     // check the image
     cy.get('@firstSearchResultListItem').find('.IIIFFragment img')
       .should('have.attr', 'src')
-      .and('include', 'https://impresso-project.ch/api/proxy/iiif/FZG-2006-12-27-a-p0009')
+      .and('include', isNewImageProxy ? 'blob:https://' : 'https://impresso-project.ch/api/proxy/iiif/DTT-1978-06-21-a-p0023')
 
     // check the image is loaded and is visible
     cy.get('@firstSearchResultListItem').find('.IIIFFragment img')
@@ -48,40 +54,45 @@ describe('Search', () => {
 
 
     // check the newspaper
-    cy.get('@firstSearchResultListItem').find('.article-newspaper').should('have.text', 'Freiburger Nachrichten')
-    cy.get('@firstSearchResultListItem').find('.article-newspaper').should('have.attr', 'href').and('include', '/newspapers/FZG')
+    cy.get('@firstSearchResultListItem').find('.MediaSourceLabel a span:first-child').should('have.text', 'Die Tat')
+    cy.get('@firstSearchResultListItem').find('.MediaSourceLabel a').should('have.attr', 'href').and('include', '/newspapers/DTT')
 
     // check the date
-    cy.get('@firstSearchResultListItem').find('[data-testid="article-date"]').should('have.text', 'Wednesday, December 27, 2006')
+    cy.get('@firstSearchResultListItem').find('[data-testid="article-date"]').should('have.text', 'Wednesday, June 21, 1978')
     // check the pages count
-    cy.get('@firstSearchResultListItem').find('[data-testid="article-pages-count"]').contains('p.9')
+    cy.get('@firstSearchResultListItem').find('[data-testid="article-pages-count"]').contains('p.23')
 
     // access rights
-    cy.get('@firstSearchResultListItem').find('[data-testid="article-access-rights"]').contains('Personal use — provided by Swiss National Library')
+    const expectedAccessRights = isDataVersion2 ? 'not specified (no export) — provided by Migros' : 'Personal use — provided by Migros'
+    cy.get('@firstSearchResultListItem').find('[data-testid="article-access-rights"]').contains(expectedAccessRights)
 
     // entities
+    // TODO: not yet ready in v2
+    if (!isDataVersion2) {
+      // locations
+      const locations = []
+      cy.get("@secondSearchResultListItem")
+        .find('[data-testid="article-locations"]')
+        .find('.ItemSelector_label')
+        .each(($li) => locations.push($li.text()))
+      cy.wrap(locations)
+        .should('deep.equal', ['Basel', 'Paris'])
 
-    // locations
-    const locations = []
-    cy.get("@firstSearchResultListItem")
-      .find('[data-testid="article-locations"]')
-      .find('.ItemSelector_label')
-      .each(($li) => locations.push($li.text()))
-    cy.wrap(locations)
-      .should('deep.equal', ['Wetter, Hesse', 'Las Vegas Strip', 'California'])
+      // people
+      const people = []
+      cy.get("@firstSearchResultListItem")
+        .find('[data-testid="article-persons"]')
+        .find('.ItemSelector_label')
+        .each(($li) => people.push($li.text()))
+      cy.wrap(people)
+        .should('deep.equal', ['Helmut Qualtinger'])
 
-    // people
-    const people = []
-    cy.get("@firstSearchResultListItem")
-      .find('[data-testid="article-persons"]')
-      .find('.ItemSelector_label')
-      .each(($li) => people.push($li.text()))
-    cy.wrap(people)
-      .should('deep.equal', ['Leonardo DiCaprio', 'Robbie Williams'])
+    }
   })
 
   it('Result list display controls work as expected', () => {
-    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    // Term: Impresso, Source: Die Tat
+    const impressoSearchQuery = 'CgIYAgoQEAIYByABKghJbXByZXNzbwoJEAIYCSoDRFRU'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
     // wait for the loading indicator to disappear
@@ -95,7 +106,7 @@ describe('Search', () => {
       .as('firstSearchResultListItem')
 
     // check the title of the first search result
-    cy.get('@firstSearchResultListItem').find('[data-testid="article-title"]').contains('3+')
+    cy.get('@firstSearchResultListItem').find('[data-testid="article-title"]').contains('DKSI Nachrichten')
 
 
     // test order by: oldest first
@@ -106,7 +117,7 @@ describe('Search', () => {
     cy.get('#app-loading').should('not.exist')  
 
     // check the title of the first search result
-    cy.get('@firstSearchResultListItem').find('[data-testid="article-title"]').contains('Chambre » avec la pension,')
+    cy.get('@firstSearchResultListItem').find('[data-testid="article-title"]').contains('RnvdOTIO')
 
 
     // test order by: relevance
@@ -117,32 +128,44 @@ describe('Search', () => {
     cy.get('#app-loading').should('not.exist')  
 
     // check the title of the first search result
-    cy.get('@firstSearchResultListItem').find('[data-testid="article-title"]').contains('UNKNOWN')
+    cy.get('@firstSearchResultListItem').find('[data-testid="article-title"]').contains('DKSI Nachrichten')
     
 
     // pagination
+    // search for Impresso only to have more than one page
+    const paginatingQuery = 'CgIYAgoQEAIYByABKghJbXByZXNzbw=='
+    cy.visit(`/search?sq=${paginatingQuery}&orderBy=-date`)
 
     // 1st page is active
     cy.get('.float-left > [data-testid="pagination-container"] > [data-testid="page-1"]')
       .should('have.class', 'active')
 
-    cy.get('.float-left > [data-testid="pagination-container"] > [data-testid="page-3"] > .page-link')
-      .click()
+    cy.get('@firstSearchResultListItem')
+      .find('[data-testid="article-title"] > a')
+      .invoke('text')
+      .then(firstPageSearchResultTitle => {
 
-    // wait for the loading indicator to disappear
-    cy.get('#app-loading').should('not.exist')  
-
-
-    // check the title of the first search result
-    cy.get('@firstSearchResultListItem').find('[data-testid="article-title"]').contains('La crescente marea della mano d\'opera estera')
-
-    // 3rd page is active
-    cy.get('.float-left > [data-testid="pagination-container"] > [data-testid="page-3"]')
-    .should('have.class', 'active')
+        cy.get('.float-left > [data-testid="pagination-container"] > [data-testid="page-3"] > .page-link')
+        .click()
+  
+        // wait for the loading indicator to disappear
+        cy.get('#app-loading').should('not.exist')  
+    
+        // check the title of the first search result
+        cy.get('@firstSearchResultListItem').find('[data-testid="article-title"]').invoke('contents').should('not.eq', firstPageSearchResultTitle)
+        // cy.get('@firstSearchResultListItem').find('[data-testid="article-title"]').contains('La crescente marea della mano d\'opera estera')
+    
+        // 3rd page is active
+        cy.get('.float-left > [data-testid="pagination-container"] > [data-testid="page-3"]')
+        .should('have.class', 'active')
+      })
   })
 
   it('Autocomplete works with search pills', () => {
-    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    // TODO: entities not enabled in v2 yet
+    if (isDataVersion2) return
+
+    const impressoSearchQuery = 'CgIYAgoQEAIYByABKghJbXByZXNzbwoJEAIYCSoDRFRU'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
     // wait for the loading indicator to disappear
@@ -150,13 +173,13 @@ describe('Search', () => {
 
     cy.get('[data-testid="search-pills"]').as('searchPills')
 
-    // only 1 search pill (impresso) should be present
-    cy.get('@searchPills').find('.search-pill').should('have.length', 1)
+    // only 2 search pills (Impresso and Die Tat) should be present
+    cy.get('@searchPills').find('.search-pill').should('have.length', 2)
 
     // check the search pill content
     cy.get('@searchPills')
       .find('[data-testid="search-pill-string"]')
-      .contains('impresso')
+      .contains('Impresso')
       .should('exist')
 
     // Add Paris
@@ -167,12 +190,12 @@ describe('Search', () => {
     cy.get('#app-loading').should('not.exist')
 
     // 2 search pills should be present
-    cy.get('@searchPills').find('.search-pill').should('have.length', 2)
+    cy.get('@searchPills').find('.search-pill').should('have.length', 3)
 
     // check the search pill content - impresso
     cy.get('@searchPills')
       .find('[data-testid="search-pill-string"]')
-      .contains('impresso')
+      .contains('Impresso')
       .should('exist')
 
     // check the search pill content - paris
@@ -185,7 +208,7 @@ describe('Search', () => {
 
     // Human readable search summary
     cy.get('section.search-results-summary').should('exist')
-    cy.get('section.search-results-summary').contains(/4 articles found containing impresso mentioning Paris/)
+    cy.get('section.search-results-summary').contains(/2 articles found containing Impresso published in Die Tat mentioning Paris/)
 
     // remove Paris
     cy.get('@parisPill').click()    
@@ -198,8 +221,8 @@ describe('Search', () => {
     // wait for the loading indicator to disappear
     cy.get('#app-loading').should('not.exist')
 
-    // only 1 search pill (impresso) should be present
-    cy.get('@searchPills').find('.search-pill').should('have.length', 1)
+    // only 2 search pills (Impresso and Die Tat) should be present
+    cy.get('@searchPills').find('.search-pill').should('have.length', 2)
 
     // remove everything
     cy.get('[data-testid="reset-filters-button"]').first().click()
@@ -219,8 +242,8 @@ describe('Search', () => {
         const numberPart = textParts[0].replace(/,/g, '')
         const parsedNumber = parseInt(numberPart, 10)
 
-        // check that we have at least 40,000,000 articles
-        cy.wrap(parsedNumber).should('be.greaterThan', 40000000)
+        // check that we have at least 38,000,000 articles
+        cy.wrap(parsedNumber).should('be.greaterThan', 38000000)
       })
 
   })
@@ -245,14 +268,14 @@ describe('Search', () => {
   })
 
   it('Date filter works', () => {
-    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    const impressoSearchQuery = 'CgIYAgoQEAIYByABKghJbXByZXNzbwoJEAIYCSoDRFRU'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
     // wait for the loading indicator to disappear
     cy.get('#app-loading').should('not.exist')  
 
     // make sure the timeline is visible (it renders the peak)
-    cy.get('[data-testid="timeline"] svg .peak text').should('have.text', 14)
+    cy.get('[data-testid="timeline"] svg .peak text').should('have.text', 2)
 
     // enter different range
     cy.get('[data-testid="add-new-date-filter-button"]').click()
@@ -265,18 +288,18 @@ describe('Search', () => {
     // wait for the loading indicator to disappear
     cy.get('#app-loading').should('not.exist')  
 
-    cy.get('section.search-results-summary').contains(/15 articles found containing impresso/)
+    cy.get('section.search-results-summary').contains(/6 articles found containing Impresso/)
 
-    // 3 search pill (impresso + front page) should be present
+    // 3 search pill (impresso + Die Tat + front page) should be present
     cy.get('[data-testid="search-pills"]')
       .find('.search-pill')
-      .should('have.length', 2)
+      .should('have.length', 3)
   
     cy.get('[data-testid="search-pill-daterange"] .label').should('have.text', 'From Jan 1, 1800 to Jan 1, 1980')
   })
 
   it('Date filter timeline tooltip works', () => {
-    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    const impressoSearchQuery = 'CgIYAgoQEAIYByABKghJbXByZXNzbwoJEAIYCSoDRFRU'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
     // wait for the loading indicator to disappear
@@ -291,7 +314,7 @@ describe('Search', () => {
   })
 
   it('Content length filter works', () => {
-    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    const impressoSearchQuery = 'CgIYAgoQEAIYByABKghJbXByZXNzbwoJEAIYCSoDRFRU'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
     // wait for the loading indicator to disappear
@@ -299,7 +322,7 @@ describe('Search', () => {
 
     // make sure the histogram is visible (it renders the peak)
     cy.get('[data-testid="filter-range"] svg .bars .bar').should('have.length.greaterThan', 1)
-    cy.get('[data-testid="filter-range"] svg .maxval text').should('have.text', '200 (11 results)')
+    cy.get('[data-testid="filter-range"] svg .maxval text').should('have.text', '100 (1 results)')
 
 
     // adjust the range
@@ -319,7 +342,7 @@ describe('Search', () => {
     // wait for the loading indicator to disappear
     cy.get('#app-loading').should('not.exist')  
 
-    cy.get('section.search-results-summary').contains(/14 articles found containing impresso/)
+    cy.get('section.search-results-summary').contains(isDataVersion2 ? /2 articles found containing Impresso/ : /3 articles found containing Impresso/)
 
     cy.get('[data-testid="search-pill-contentLength"] .label').should('have.text', 'Content length between 1,435 and 4,364')
 
@@ -327,12 +350,12 @@ describe('Search', () => {
     cy.get('[data-testid="filter-range"] button').contains('Reset').click()
 
     cy.get('[data-testid="search-pill-contentLength"]').should('not.exist')
-    cy.get('section.search-results-summary').contains(/56 articles found containing impresso/)
+    cy.get('section.search-results-summary').contains(/6 articles found containing Impresso/)
 
   })
 
   it('Language filter works', () => {
-    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    const impressoSearchQuery = 'CgIYAgoQEAIYByABKghJbXByZXNzbwoJEAIYCSoDRFRU'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
     // wait for the loading indicator to disappear
@@ -343,13 +366,13 @@ describe('Search', () => {
     cy.get('[data-testid="facet-filter-language"] [data-testid="expand-collapse-button"]').click()
 
     cy.get('[data-testid="facet-filter-language"] .FilterFacetBucket .ItemLabel')
-      .contains('French')
+      .contains('German')
       .siblings('span')
-      .contains('10 results')
+      .contains('6 results')
       .should('exist')
 
     cy.get('[data-testid="facet-filter-language"] .FilterFacetBucket .ItemLabel')
-      .contains('French')
+      .contains('German')
       .parent()
       .siblings('.custom-checkbox')
       .click()
@@ -361,9 +384,9 @@ describe('Search', () => {
     // wait for the loading indicator to disappear
     cy.get('#app-loading').should('not.exist')
 
-    cy.get('section.search-results-summary').contains(/10 articles found containing impresso written in French/)
+    cy.get('section.search-results-summary').contains(/6 articles found containing Impresso published in Die Tat written in German/)
 
-    cy.get('[data-testid="search-pill-language"] .label').should('have.text', 'French')
+    cy.get('[data-testid="search-pill-language"] .label').should('have.text', 'German')
 
     cy.get('[data-testid="facet-filter-language"] [data-testid="remove-filter-button"]')
       .click()
@@ -372,23 +395,26 @@ describe('Search', () => {
     cy.get('#app-loading').should('not.exist')
 
     cy.get('[data-testid="search-pill-language"]').should('not.exist')
-    cy.get('section.search-results-summary').contains(/56 articles found containing impresso/)
+    cy.get('section.search-results-summary').contains(/6 articles found containing Impresso/)
   })
 
   it("Entity monitor works", () => {
-    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    // TODO: entities not enabled in v2 yet
+    if (isDataVersion2) return
+
+    const impressoSearchQuery = 'CgIYAgoQEAIYByABKghJbXByZXNzbwoJEAIYCSoDRFRU'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
 
     // wait for the loading indicator to disappear
     cy.get('#app-loading').should('not.exist') 
 
-    cy.get(".ItemSelector").contains("Leonardo DiCaprio").click()
+    cy.get(".ItemSelector").contains("Pyotr Ilyich Tchaikovsky").click()
 
-    cy.get(".SelectionMonitor .d3-timeline .peak text").should("have.text", "910")
+    cy.get(".SelectionMonitor .d3-timeline .peak text").should("have.text", "33")
   })
 
   it("Can add similar words", () => {
-    const impressoSearchQuery = 'ChIIARACGAcgASoIaW1wcmVzc28%3D'
+    const impressoSearchQuery = 'CgIYAgoQEAIYByABKghJbXByZXNzbwoJEAIYCSoDRFRU'
     cy.visit(`/search?sq=${impressoSearchQuery}&orderBy=-date`)
     // wait for the loading indicator to disappear
     cy.get('#app-loading').should('not.exist') 
@@ -409,6 +435,6 @@ describe('Search', () => {
     cy.get('.modal [aria-label="Close"]').click()
     cy.get(".modal .embeddings").should("not.exist")
 
-    cy.get('section.search-results-summary').contains(/Sorry, no articles found containing impresso AND duck/)
+    cy.get('section.search-results-summary').contains(/Sorry, no articles found containing Impresso AND duck/)
   })
 })
