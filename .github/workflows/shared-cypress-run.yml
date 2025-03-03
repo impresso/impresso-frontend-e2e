@@ -1,0 +1,63 @@
+name: Shared - run cypress tests in the dev environment
+
+on: 
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      base_url:
+        required: true
+        type: string
+    secrets:
+      user_email:
+        required: true
+      user_password:
+        required: true
+      slack_webhook_url:
+        required: true
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-22.04
+    container:
+      # Cypress Docker image from https://hub.docker.com/r/cypress/included
+      # with Cypress globally pre-installed
+      image: cypress/included:14.1.0
+      options: --user 1001
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: 'Create .env file'
+        run: |
+          touch .env
+          echo USER_EMAIL=${{ secrets.user_email }} >> .env
+          echo USER_PASSWORD=${{ secrets.user_password }} >> .env
+          echo BASE_URL=${{ inputs.base_url }} >> .env
+      # Install npm dependencies, cache them correctly
+      # and run all Cypress tests
+      - name: Cypress run
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+      - name: Upload failure screenshot
+        id: upload-failure-screenshot
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: failure-screenshot
+          path: cypress/screenshots/
+      - name: notify slack
+        id: slack
+        uses: slackapi/slack-github-action@v1.26.0
+        if: ${{ failure() }}
+        with:
+          channel-id: 'ci-notifications'
+          payload: |
+            {
+              "text": "🚨 End-to-end tests failed in the **${{ inputs.environment }}** environment. See ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} for more details."
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.slack_webhook_url }}

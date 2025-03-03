@@ -1,0 +1,17 @@
+name: Run cypress tests in the prod environment
+
+on: 
+  push:
+  schedule:
+    - cron: "14 */3 * * *" # every 3rd hour
+
+jobs:
+  cypress-run:
+    uses: ./.github/workflows/shared-cypress-run.yml
+    with:
+      environment: production
+      base_url: https://impresso-project.ch/app
+    secrets:
+      user_email: ${{ secrets.PROD_TEST_USER_EMAIL }}
+      user_password: ${{ secrets.PROD_TEST_USER_PASSWORD }}
+      slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}

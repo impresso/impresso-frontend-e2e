@@ -7,44 +7,11 @@ on:
 
 jobs:
   cypress-run:
-    runs-on: ubuntu-22.04
-    container:
-      # Cypress Docker image from https://hub.docker.com/r/cypress/included
-      # with Cypress globally pre-installed
-      image: cypress/included:13.12.0
-      options: --user 1001
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: 'Create .env file'
-        run: |
-          touch .env
-          echo USER_EMAIL=${{ secrets.DEV_TEST_USER_EMAIL }} >> .env
-          echo USER_PASSWORD=${{ secrets.DEV_TEST_USER_PASSWORD }} >> .env
-      # Install npm dependencies, cache them correctly
-      # and run all Cypress tests
-      - name: Cypress run
-        uses: cypress-io/github-action@v6
-        with:
-          browser: chrome
-        env:
-          CYPRESS_INSTALL_BINARY: 0
-      - name: Upload failure screenshot
-        id: upload-failure-screenshot
-        uses: actions/upload-artifact@v4
-        if: ${{ failure() }}
-        with:
-          name: failure-screenshot
-          path: cypress/screenshots/
-      - name: notify slack
-        id: slack
-        uses: slackapi/slack-github-action@v1.26.0
-        if: ${{ failure() }}
-        with:
-          channel-id: 'ci-notifications'
-          payload: |
-            {
-              "text": "🚨 End-to-end tests failed in the **devevelopment** environment. See ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} for more details."
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    uses: ./.github/workflows/shared-cypress-run.yml
+    with:
+      environment: development
+      base_url: https://dev.impresso-project.ch/app
+    secrets:
+      user_email: ${{ secrets.DEV_TEST_USER_EMAIL }}
+      user_password: ${{ secrets.DEV_TEST_USER_PASSWORD }}
+      slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
