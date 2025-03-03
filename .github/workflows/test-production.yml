@@ -1,4 +1,4 @@
-name: Run cypress tests in the dev environment
+name: Run cypress tests in the prod environment
 
 on: 
   push:
@@ -9,7 +9,7 @@ jobs:
   cypress-run:
     uses: ./.github/workflows/shared-cypress-run.yml
     with:
-      environment: development
+      environment: production
       base_url: https://impresso-project.ch/app
     secrets:
       user_email: ${{ secrets.PROD_TEST_USER_EMAIL }}
