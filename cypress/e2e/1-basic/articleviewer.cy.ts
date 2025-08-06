@@ -120,19 +120,17 @@ it('should highlight the currently active article in the list', () => {
   
 it('should display named entities for Persons', () => {
 
-  // Start inside the main content column to ignore the sidebar.
+
   cy.get('.i-layout-section.border-left').within(() => {
     
-    // --- THIS IS THE DIRECT FIX ---
-
-    // 1. Find all 11 "Persons" containers.
+    
     cy.get('div.contents:has(span.badge:contains("persons"))')
-      // 2. Use .first() to FORCIBLY select only the very first one it finds.
+      
       .first()
-      // 3. Now, call .within() on that SINGLE element.
+    
       .within(() => {
     
-        // These assertions will now run inside the correct, single container.
+
         cy.contains('span.ItemSelector_label', 'Alexander von Humboldt')
           .should('be.visible');
 
